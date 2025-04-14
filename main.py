@@ -6,6 +6,9 @@ import random
 
 def start_screen(stdscr):
     stdscr.clear()
+    stdscr.nodelay(False)
+    curses.flushinp()
+
     stdscr.addstr(0, 0, "Welcome to typing speed test!")
     stdscr.addstr(1, 0, "Select Difficulty : ")
     stdscr.addstr(2, 0, "1. Easy")
@@ -13,12 +16,17 @@ def start_screen(stdscr):
     stdscr.addstr(4, 0, "3. Hard")
     stdscr.addstr(5, 0, "Press 1, 2, or 3 to start.")
     stdscr.refresh()
+    
     while True:
-        key = stdscr.getkey()
-        match key:
-            case '1': return "EASY"
-            case '2': return "MEDIUM"
-            case '3': return "HARD"
+        try:
+            key = stdscr.getkey()
+            match key:
+                case '1': return "EASY"
+                case '2': return "MEDIUM"
+                case '3': return "HARD"
+                case _ : continue
+        except Exception:
+            continue
 
 
 def display_text(stdscr, target, current, wpm=0, accuracy=100):
@@ -58,9 +66,13 @@ def wpm_test(stdscr, difficulty):
         wpm = round((len(current_text) / (time_elapsed / 60)) / 5)
 
         correct_chars = sum(1 for i, char in enumerate(current_text) if i < len(target_text) and char == target_text[i])
-        total_chars_typed = len(current_text)
+        total_chars_typed = max(len(current_text), 1)
 
-        accuarcy = (correct_chars / total_chars_typed) * 100
+        if total_chars_typed == 0:
+            accuracy = 0.0
+
+        else:
+            accuracy = (correct_chars / total_chars_typed) * 100
 
         stdscr.erase()
         display_text(stdscr, target_text, current_text, wpm, accuracy)
@@ -96,11 +108,12 @@ def main(stdscr):
     curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
     curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
 
-    start_screen(stdscr)
+    #start_screen(stdscr)
     while True:
         difficulty = start_screen(stdscr)
         wpm_test(stdscr, difficulty)
         stdscr.addstr(2, 0, "Press ESC to exit or any key to retry")
+        stdscr.refresh()
         key = stdscr.getkey()
 
         if ord(key) == 27:
