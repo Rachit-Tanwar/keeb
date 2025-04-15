@@ -112,12 +112,17 @@ def wpm_test(stdscr, difficulty, time_limit:int=30):
         else:
             accuracy = (correct_chars / total_chars_typed) * 100
 
+        mistakes = total_chars_typed - correct_chars
+
+        text = "".join(current_text)
+        words_typed = len(text.split())
+
         stdscr.erase()
         display_text(stdscr, target_text, current_text, wpm, accuracy)
         stdscr.addstr(21, 0, f"Time left : {int(time_limit - time_elapsed)}s")
         stdscr.refresh()
 
-        if "".join(current_text) == target_text:
+        if text == target_text:
             stdscr.nodelay(False)
             break
 
@@ -144,21 +149,18 @@ def wpm_test(stdscr, difficulty, time_limit:int=30):
     stdscr.nodelay(False)
     stdscr.erase()
 
-    final_time = time.time() - start_time
-    wpm = round((len(current_text) / (time_elapsed / 60)) / 5)
-    correct_chars = sum(1 for i, char in enumerate(current_text) if i < len(target_text) and char == target_text[i])
-    total_chars_typed = max(len(current_text), 1)
-    accuracy = ((correct_chars / total_chars_typed) * 100) if total_chars_typed > 0 else 0.0
-
 #If i want to display wpm and accuracy in the curses screen
     '''stdscr.addstr(0, 0, "Time finished!!")
     stdscr.addstr(2, 0, f"Your WPM : {wpm}")
     stdscr.addstr(3, 0, f"Your Accuracy :  {accuracy:.2f}%")
-    stdscr.addstr(5, 0, "Press any key to continue ...")
+    stdscr.addstr(4, 0, f"Mistakes : {mistakes}")
+    stdscr.addstr(5, 0, f"Characters typed : {total_chars_typed}")
+    stdscr.addstr(6, 0, f"Words Typed : {words_typed}")
+    stdscr.addstr(8, 0, "Press any key to continue ...")
     stdscr.refresh()
     stdscr.getkey()
 '''
-    return wpm, accuracy
+    return wpm, accuracy, mistakes, total_chars_typed, words_typed
 
 
 def main(stdscr):
@@ -166,22 +168,19 @@ def main(stdscr):
     curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
     curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
 
-    #start_screen(stdscr)
     difficulty, time_limit = start_screen(stdscr)
-    wpm, accuracy = wpm_test(stdscr, difficulty, time_limit)
-
-    f_wpm = wpm
-    f_accuracy = accuracy
-
-    return f_wpm, f_accuracy
+    return wpm_test(stdscr, difficulty, time_limit)
 
 if __name__ == "__main__":
     while True:
-        wpm, accuracy = wrapper(main)
+        wpm, accuracy, mistakes, chars_typed, words_typed = wrapper(main)
     
         result_table = [
             ["WPM", wpm],
-            ["Accuracy", f"{accuracy:.2f}%"]
+            ["Accuracy", f"{accuracy:.2f}%"],
+            ["Mistakes", mistakes],
+            ["Characters Typed", chars_typed],
+            ["Words typed", words_typed]
         ]
 
         print("\nTest results : ")
