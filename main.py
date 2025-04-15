@@ -1,8 +1,42 @@
 import curses
 from curses import wrapper
 from tabulate import tabulate
+
+import csv
 import time
 import random
+from datetime import datetime
+
+
+def log_history(wpm, accuracy, chars_typed, words_typed, mistakes, time_limit, file_path="keeb_history.csv"):
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    headers = ["timestamp", "time", "wpm", "accuracy", "characterss_typed", "words_typed", "mistakes"]
+    row = [now, time_limit, wpm, f"{accuracy:.2f}", chars_typed, words_typed, mistakes]
+    try:
+        with open(file_path, "a", newline =' ') as csvfile:
+            writer = csv.writer(csvfile)
+            if csvfile.tell() == 0:
+                writer.writerow(headers)
+            writer.writerow(row)
+    except Exception as e:
+        print(f"Failed to write history : {e}")
+
+
+def show_history(file_path="keeb_history.csv"):
+    try:
+        with open(file_path, "r") as f:
+            reader = csv.reader(f)
+            rows = list(reader)
+            if len(rows) <= 1:
+                print("\nNo history yet.")
+                return
+
+            headers = rows[0]
+            data = rows[1:]
+            print("\nTyping History:")
+            print(tabulate(data, headers=headers, tablefmt="grid"))
+    except FileNotFoundError:
+        print("\nNo history file found.")
 
 
 def start_screen(stdscr):
@@ -160,7 +194,7 @@ def wpm_test(stdscr, difficulty, time_limit:int=30):
     stdscr.refresh()
     stdscr.getkey()
 '''
-    return wpm, accuracy, mistakes, total_chars_typed, words_typed
+    return wpm, accuracy, mistakes, total_chars_typed, words_typed, time_limit
 
 
 def main(stdscr):
@@ -173,7 +207,9 @@ def main(stdscr):
 
 if __name__ == "__main__":
     while True:
-        wpm, accuracy, mistakes, chars_typed, words_typed = wrapper(main)
+        wpm, accuracy, mistakes, chars_typed, words_typed, time_limit = wrapper(main)
+
+        log_history(wpm, accuracy, chars_typed, words_typed, mistakes, time_limit)
     
         result_table = [
             ["WPM", wpm],
@@ -186,6 +222,10 @@ if __name__ == "__main__":
         print("\nTest results : ")
         print(tabulate(result_table, headers=["Metric", "Value"], tablefmt="grid"))
 
-        r = input("Do you want to retry? [y/n]").strip().lower()
-        if r != "y":
+        r = input("Do you want to retry? [y/n]\n(h to see history)").strip().lower()
+        if r != 'y':
             break
+        elif r == 'h':
+            show_history()
+        elif r == 'n':
+            exit()
