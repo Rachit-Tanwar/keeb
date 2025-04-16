@@ -2,6 +2,7 @@ import curses
 from curses import wrapper
 from tabulate import tabulate
 
+import os
 import csv
 import time
 import random
@@ -13,7 +14,8 @@ def log_history(wpm, accuracy, chars_typed, words_typed, mistakes, time_limit, f
     headers = ["timestamp", "time", "wpm", "accuracy", "characterss_typed", "words_typed", "mistakes"]
     row = [now, time_limit, wpm, f"{accuracy:.2f}", chars_typed, words_typed, mistakes]
     try:
-        with open(file_path, "a", newline =' ') as csvfile:
+        newline_mode = '' if os.name == 'nt' else None
+        with open(file_path, "a", newline =newline_mode) as csvfile:
             writer = csv.writer(csvfile)
             if csvfile.tell() == 0:
                 writer.writerow(headers)
@@ -27,16 +29,25 @@ def show_history(file_path="keeb_history.csv"):
         with open(file_path, "r") as f:
             reader = csv.reader(f)
             rows = list(reader)
+
             if len(rows) <= 1:
                 print("\nNo history yet.")
                 return
 
             headers = rows[0]
             data = rows[1:]
+
+            if not data:
+                print("\nNo history yet.")
+                return
+
             print("\nTyping History:")
             print(tabulate(data, headers=headers, tablefmt="grid"))
+
     except FileNotFoundError:
         print("\nNo history file found.")
+    except Exception as e:
+        print(f"\nFailed to load history : {e}")
 
 
 def start_screen(stdscr):
@@ -50,7 +61,7 @@ def start_screen(stdscr):
     stdscr.addstr(3, 0, "2. Medium")
     stdscr.addstr(4, 0, "3. Hard") 
     stdscr.refresh()
-    
+
     difficulty = None
     while True:
         try:
@@ -76,7 +87,7 @@ def start_screen(stdscr):
     stdscr.addstr(2, 0, "2. 30s")
     stdscr.addstr(3, 0, "3. 60s") 
     stdscr.refresh()
-    
+
     while True:
         try:
             key = stdscr.getkey()
@@ -210,22 +221,23 @@ if __name__ == "__main__":
         wpm, accuracy, mistakes, chars_typed, words_typed, time_limit = wrapper(main)
 
         log_history(wpm, accuracy, chars_typed, words_typed, mistakes, time_limit)
-    
+
         result_table = [
-            ["WPM", wpm],
-            ["Accuracy", f"{accuracy:.2f}%"],
-            ["Mistakes", mistakes],
-            ["Characters Typed", chars_typed],
-            ["Words typed", words_typed]
-        ]
+                ["WPM", wpm],
+                ["Accuracy", f"{accuracy:.2f}%"],
+                ["Mistakes", mistakes],
+                ["Characters Typed", chars_typed],
+                ["Words typed", words_typed]
+                ]
 
         print("\nTest results : ")
         print(tabulate(result_table, headers=["Metric", "Value"], tablefmt="grid"))
 
-        r = input("Do you want to retry? [y/n]\n(h to see history)").strip().lower()
-        if r != 'y':
-            break
-        elif r == 'h':
-            show_history()
-        elif r == 'n':
-            exit()
+        while True:
+            r = input("Do you want to retry? [y/n]\n(h to see history)").strip().lower()
+            if r == 'y':
+                break
+            elif r == 'h':
+                show_history()
+            elif r == 'n':
+                exit()
