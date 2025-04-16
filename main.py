@@ -56,38 +56,13 @@ def start_screen(stdscr):
     curses.flushinp()
 
     stdscr.addstr(0, 0, "Welcome to typing speed test!")
-    stdscr.addstr(1, 0, "Select Difficulty : ")
-    stdscr.addstr(2, 0, "1. Easy")
-    stdscr.addstr(3, 0, "2. Medium")
-    stdscr.addstr(4, 0, "3. Hard") 
+    stdscr.addstr(1, 0, "Select Time Limit (press enter for default 30s) : ")
+    stdscr.addstr(2, 0, "1. 15s")
+    stdscr.addstr(3, 0, "2. 30s")
+    stdscr.addstr(4, 0, "3. 60s") 
     stdscr.refresh()
-
-    difficulty = None
-    while True:
-        try:
-            key = stdscr.getkey()
-            match key:
-                case '1':
-                    difficulty = "EASY"
-                    break
-                case '2':
-                    difficulty = "MEDIUM"
-                    break
-                case '3':
-                    difficulty = "HARD"
-                    break
-                case _ : continue
-        except Exception:
-            continue
 
     time_imit:int = 30
-    stdscr.clear()
-    stdscr.addstr(0, 0, "Select Time Limit (press enter for default 30s) : ")
-    stdscr.addstr(1, 0, "1. 15s")
-    stdscr.addstr(2, 0, "2. 30s")
-    stdscr.addstr(3, 0, "3. 60s") 
-    stdscr.refresh()
-
     while True:
         try:
             key = stdscr.getkey()
@@ -106,7 +81,7 @@ def start_screen(stdscr):
         except Exception:
             time_limit = 30
 
-    return difficulty, time_limit
+    return time_limit
 
 
 def display_text(stdscr, target, current, wpm=0, accuracy=100):
@@ -122,15 +97,15 @@ def display_text(stdscr, target, current, wpm=0, accuracy=100):
 
     stdscr.addstr(20, 0, f"WPM: {wpm} | Accuracy: {accuracy:.2f}%")
 
-def load_txt(difficulty):
-    with open('sample.txt', "r") as f:
-        lines = [line.strip() for line in f if line.strip()]
 
-        filtered_lines = [line[len(difficulty) + 2:] for line in lines if line.startswith(f"[{difficulty}]")]
+def load_txt(word_file = "word_list.txt", count = 50):
+    with open(word_file, 'r') as f:
+        content = f.read()
+        words = [word.strip() for word in content.split(',') if word.strip()]
+        if len(words) < count:
+            raise ValueError("Not enough words in word list!")
+    return " ".join(random.sample(words,count))
 
-        if not filtered_lines:
-            return "Error : No text available for this difficulty."
-        return random.choice(filtered_lines)
 
 def wpm_test(stdscr, difficulty, time_limit:int=30):
     target_text = load_txt(difficulty)
@@ -213,8 +188,8 @@ def main(stdscr):
     curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
     curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
 
-    difficulty, time_limit = start_screen(stdscr)
-    return wpm_test(stdscr, difficulty, time_limit)
+    time_limit = start_screen(stdscr)
+    return wpm_test(stdscr, time_limit)
 
 if __name__ == "__main__":
     while True:
