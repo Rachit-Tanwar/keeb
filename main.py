@@ -65,18 +65,18 @@ def start_screen(stdscr):
     time_imit:int = 30
     while True:
         try:
-            key = stdscr.getkey()
-            match key:
-                case '1':
-                    time_limit = 15
-                    break
-                case '2':
-                    time_limit = 30
-                    break
-                case '3':
-                    time_limit = 60
-                    break
-                case _ : continue
+            key = stdscr.getch()
+            if key == ord('1'):
+                time_limit = 15
+                break
+            elif key == ord('2'):
+                time_limit = 30
+                break
+            elif key == ord('3'):
+                time_limit = 60
+                break
+            else:
+                continue
 
         except Exception:
             time_limit = 30
@@ -101,14 +101,17 @@ def display_text(stdscr, target, current, wpm=0, accuracy=100):
 def load_txt(word_file = "word_list.txt", count = 50):
     with open(word_file, 'r') as f:
         content = f.read()
+
         words = [word.strip() for word in content.split(',') if word.strip()]
+        
         if len(words) < count:
             raise ValueError("Not enough words in word list!")
+
     return " ".join(random.sample(words,count))
 
 
-def wpm_test(stdscr, difficulty, time_limit:int=30):
-    target_text = load_txt(difficulty)
+def wpm_test(stdscr, time_limit):
+    target_text = load_txt()
     current_text = []
     wpm = 0
     total_chars_typed = 0
@@ -151,17 +154,17 @@ def wpm_test(stdscr, difficulty, time_limit:int=30):
         except Exception:
             continue
 
-        if ord(key) == 27:
+        if len(key) == 1 and ord(key) == 27:
             break
 
         if key in ("KEY_BACKSPACE", '\b', "\x7f"):
-            if len(current_text) > 0:
-                total_chars_typed += 1
+            if current_text:
+                #total_chars_typed += 1
                 current_text.pop()
         elif len(current_text) < len(target_text):
-            total_chars_typed += 1
-            if key == target_text[len(current_text)]:
-                correct_chars += 1
+            #total_chars_typed += 1
+            #if key == target_text[len(current_text)]:
+             #   correct_chars += 1
             current_text.append(key)
 
         time.sleep(0.1)
