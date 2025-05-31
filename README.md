@@ -4,7 +4,7 @@
 
 ---
 
-## ✨ Features
+## Features
 
 - Clean CLI interface using `curses`
 - Tracks WPM, accuracy, typed characters, words, and mistakes
@@ -15,7 +15,7 @@
 
 ---
 
-## 🚀 Installation
+## Installation
 
 Clone the repository:
 
@@ -27,10 +27,14 @@ cd keeb
 Install dependencies using [`uv`](https://github.com/astral-sh/uv):
 
 ```bash
-uv pip install -r requirements.txt
+uv add tabulate plotext
+```
+or
+```bash
+uv pip install tabulate plotext
 ```
 
-> ⚠️**Note on `curses`:**
+> **Note on `curses`:**
 >
 > * `curses` is included with Python on **Linux/macOS** — **no need to install manually**
 > * On **Windows**, install `windows-curses` instead:
@@ -42,7 +46,7 @@ uv pip install windows-curses
 
 ---
 
-## 🧪 Usage
+## Usage
 
 Run the typing test:
 
@@ -58,7 +62,7 @@ Follow the on-screen instructions:
 
 ---
 
-## 🛠 Custom Word List
+## Custom Word List
 
 Edit the `word_list.txt` file to change the vocabulary used for the test.
 Make sure the words are **comma-separated**, like:
@@ -69,6 +73,6 @@ keyboard,terminal,python,project,development,speed,test,...
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).

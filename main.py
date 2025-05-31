@@ -1,4 +1,5 @@
 import curses
+import plotext as plt
 from curses import wrapper
 from tabulate import tabulate
 
@@ -103,11 +104,29 @@ def load_txt(word_file = "word_list.txt", count = 50):
         content = f.read()
 
         words = [word.strip() for word in content.split(',') if word.strip()]
-        
+
         if len(words) < count:
             raise ValueError("Not enough words in word list!")
 
     return " ".join(random.sample(words,count))
+
+
+def plot_wpm_graph(data):
+    if not data:
+        print("No WPM data to plot.")
+        return
+
+    times, wpm_values = zip(*data)
+
+    plt.clear_figure()
+    plt.title("WPM")
+    plt.xlabel("Time (s)")
+    plt.ylabel("wpm")
+    plt.plotsize(50, 10)
+    plt.plot(times, wpm_values) #marker='dot')
+    plt.ylim(0, max(wpm_values)+10)
+    plt.grid(True)
+    plt.show()
 
 
 def wpm_test(stdscr, time_limit):
@@ -116,6 +135,8 @@ def wpm_test(stdscr, time_limit):
     wpm = 0
     total_chars_typed = 0
     start_time = time.time()
+    wpm_over_time = []
+    last_recorded_sec = -1
     stdscr.nodelay(True)
     curses.curs_set(0)
 
@@ -139,6 +160,11 @@ def wpm_test(stdscr, time_limit):
 
         text = "".join(current_text)
         words_typed = len(text.split())
+
+        current_sec = int(time_elapsed)
+        if current_sec > last_recorded_sec:
+            wpm_over_time.append((current_sec, wpm))
+            last_recorded_sec = current_sec
 
         stdscr.erase()
         display_text(stdscr, target_text, current_text, wpm, accuracy)
@@ -170,6 +196,7 @@ def wpm_test(stdscr, time_limit):
         time.sleep(0.1)
 
     stdscr.nodelay(False)
+
     stdscr.erase()
 
 #If i want to display wpm and accuracy in the curses screen
@@ -183,7 +210,7 @@ def wpm_test(stdscr, time_limit):
     stdscr.refresh()
     stdscr.getkey()
 '''
-    return wpm, accuracy, mistakes, total_chars_typed, words_typed, time_limit
+    return wpm, accuracy, mistakes, total_chars_typed, words_typed, time_limit, wpm_over_time
 
 
 def main(stdscr):
@@ -196,7 +223,11 @@ def main(stdscr):
 
 if __name__ == "__main__":
     while True:
-        wpm, accuracy, mistakes, chars_typed, words_typed, time_limit = wrapper(main)
+        wpm, accuracy, mistakes, chars_typed, words_typed, time_limit, wpm_over_time = wrapper(main)
+
+        #curses.endwin()
+        plot_wpm_graph(wpm_over_time)
+        input("\nPress Enter to see results")
 
         log_history(wpm, accuracy, chars_typed, words_typed, mistakes, time_limit)
 
